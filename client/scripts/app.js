@@ -1,26 +1,15 @@
 // YOUR CODE HERE:
-//
-
-var message = $('.chatInput').val();
-
-// $.ajax({
-//   url: 'https://api.parse.com/1/classes/chatterbox',
-//   type: 'GET',
-//   data: JSON.stringify(message),
-//   contentType: 'application/json',
-//   success: function(data){
-
-//   },
-//   error: function(data){}
-// });
 
 var app = {};
 
+app.server =  'https://api.parse.com/1/classes/chatterbox';
+
 app.init = function(){
   $( document ).ready(function(){
-    $('.submitButton').click(function(){
-      var message = $('.chatInput').val();
-      app.send(message);
+    $('#send .submit').click(function(){
+      var message = $('#message').val();
+      app.handleSubmit(message);
+      $('#message').val('');
     });
     $('.fetchButton').click(app.fetch);
   });
@@ -45,10 +34,10 @@ app.fetch = function(){
   $.ajax({
     url: app.server,
     type: 'GET',
+    data: {order: "-updatedAt", limit: 10},
     contentType: 'application/json',
     success: function(data){
       console.log(data);
-      // return data.results;
       data.results.forEach(app.addMessage);
     },
     error: function(data){
@@ -57,20 +46,43 @@ app.fetch = function(){
   });
 };
 
-app.server =  'https://api.parse.com/1/classes/chatterbox';
-
 app.init();
 app.clearMessages = function(){
   $('#chats').empty();
 };
 app.addMessage = function(message, i, arr){
-  var insertion = '<div>' + message.username + ': ' + message.text + '</div>';
+  var insertion = '<div><span class="username">' + app.escape(message.username) + '</span>: ' + app.escape(message.text) + '</div>';
   $('#chats').append(insertion);
+  $('.username').click(app.addFriend);
 };
 app.addRoom = function(room){
   var insertion = '<div id="' + room + '"></div>';
   $('#roomSelect').append(insertion);
 };
+
+app.addFriend = function(){
+ // do something later. Passes test as of now.
+};
+
+app.escape = function(passedIn){
+  if(passedIn===undefined || passedIn===null){
+    return 'undefined';
+  }
+  var arrFromString = passedIn.split('');
+  var whiteListString = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -.,!?;:";
+  return arrFromString.map(function(elem, i, arr){
+    if(whiteListString.indexOf(elem)===-1){
+      return '';
+    }
+    else {
+      return elem;
+    }
+  }).join('');
+}
+
+app.handleSubmit = function(message){
+  app.send(message);
+}
 
 /* Note to self:
 
