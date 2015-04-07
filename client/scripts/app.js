@@ -12,6 +12,9 @@ app.init = function(){
       $('#message').val('');
     });
     $('.fetchButton').click(app.fetch);
+    $('.newUserSubmit').click(app.newUser);
+    window.username = 'anonymous';
+    window.friends = [];
   });
 };
 
@@ -34,10 +37,10 @@ app.fetch = function(){
   $.ajax({
     url: app.server,
     type: 'GET',
-    data: {order: "-updatedAt", limit: 10},
+    data: {order: "-updatedAt", limit: 100},
     contentType: 'application/json',
     success: function(data){
-      console.log(data);
+      app.clearMessages();
       data.results.forEach(app.addMessage);
     },
     error: function(data){
@@ -52,16 +55,22 @@ app.clearMessages = function(){
 };
 app.addMessage = function(message, i, arr){
   var insertion = '<div><span class="username">' + app.escape(message.username) + '</span>: ' + app.escape(message.text) + '</div>';
-  $('#chats').append(insertion);
-  $('.username').click(app.addFriend);
+  $('#chats').prepend(insertion);
+  $('.username').click(function(){
+    app.addFriend($(this).text());
+  });
 };
 app.addRoom = function(room){
   var insertion = '<div id="' + room + '"></div>';
   $('#roomSelect').append(insertion);
 };
 
-app.addFriend = function(){
- // do something later. Passes test as of now.
+app.addFriend = function(name){
+ if (window.friends.indexOf(name) > 0){
+  window.friends.splice(window.friends.indexOf(name), 1);
+ } else {
+   window.friends.push(name);
+ }
 };
 
 app.escape = function(passedIn){
@@ -81,7 +90,16 @@ app.escape = function(passedIn){
 }
 
 app.handleSubmit = function(message){
-  app.send(message);
+  var paddedMessage = {
+    username: window.username,
+    text: message
+  }
+  app.send(paddedMessage);
+}
+
+app.newUser = function(){
+  window.username = $('#userBox').val();
+  $('#userBox').val('');
 }
 
 /* Note to self:
